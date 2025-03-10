@@ -1,0 +1,9 @@
+# An implementation of Witten-Bell smoothing for unigrams and bigrams
+
+def wbUnigram():
+    print("Witten-Bell unigram smoothing: Not yet implemented")
+    return
+
+def wbBigram():
+    print("Witten-Bell bigram smoothing: Not yet implemented")
+    return
