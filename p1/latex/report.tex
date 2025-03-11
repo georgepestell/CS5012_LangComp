@@ -1,0 +1,66 @@
+\documentclass[a4paper, 12pt]{article}
+
+\usepackage{fontspec}
+\setmainfont{Atkinson Hyperlegible}
+\setmonofont[Scale=0.9]{JetBrains Mono}
+
+\usepackage{float}
+
+\usepackage[margin=1in]{geometry}
+
+\setlength{\parskip}{1em}
+\setlength{\parindent}{0em}
+
+\usepackage{titling}
+
+\title{CS5012 - P1}
+\author{200007413}
+\date{}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \vspace*{\fill}
+    {\Huge\thetitle}
+
+    {\LARGE(Small) Language Models}
+    
+    {\large\theauthor}
+    \vspace*{\fill}
+\end{titlepage}
+
+\pagebreak
+
+\section{Implementation}
+% TODO: Describe the implementation of HMM and bigrams
+
+
+
+\pagebreak
+\section{Results}
+% TODO: Experiment results as a table of accuracies and perplexities
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{r | l}
+        \textbf{Lang} & \textbf{Test Accuracy} \\
+        \hline
+        \texttt{en} & 0.9825227963525835 \\
+        \hline
+        \texttt{orv} & 0.8210169932938343 \\
+        \hline
+        \texttt{tr} & 0.9709121130272179
+    \end{tabular}
+    \caption{Accuracy of the HMM model on the test sets}
+    \label{tab:hmm-accuracy}
+\end{table}
+
+\pagebreak
+\section{Reflection}
+
+
+The HMM model had high accuracy on the English and Turkish test sets. A significant performance drop was observed on the Old Russian test set. This could be due to the small size of the training set for Old Russian. This may be due to the relatively small training set for Old Russian. The model may not have been able to learn the language model effectively due to the small size of the training set. The model may have overfitted the training data, leading to poor generalization on the test set.
+% TODO: Discuss the successes and failures of the implementation
+
+\end{document}

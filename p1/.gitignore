@@ -3,3 +3,7 @@
 /UD_English-Atis/
 /UD_Turkish-Atis/
 /UD_Old_East_Slavic-TOROT/
+/latex/*
+!/latex/*.tex
+!/latex/*.bib
+!/latex/*.pdf
