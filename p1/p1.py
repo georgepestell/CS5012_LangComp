@@ -8,6 +8,18 @@ from sys import float_info
 import math
 import numpy as np
 
+### BEGIN STARTER CODE ###
+# Adding a list of probabilities represented as log probabilities.
+def logsumexp(self, vals):
+    if len(vals) == 0:
+        return self.min_log_prob
+    m = max(vals)
+    if m == self.min_log_prob:
+        return self.min_log_prob
+    else:
+        return m + math.log(sum([math.exp(val - m) for val in vals]))
+### END STARTER CODE ###
+
 class HMM:
     def __init__(self, train_sents, z=100000):
         self.transitions = {}
@@ -149,18 +161,6 @@ class HMM:
 
         return list(reversed(best_path))
 
-    ### BEGIN STARTER CODE ###
-    # Adding a list of probabilities represented as log probabilities.
-    def logsumexp(self, vals):
-        if len(vals) == 0:
-            return self.min_log_prob
-        m = max(vals)
-        if m == self.min_log_prob:
-            return self.min_log_prob
-        else:
-            return m + math.log(sum([math.exp(val - m) for val in vals]))
-    ### END STARTER CODE ###
-
     def calculatePerplexity(self, test_sents):
         total_log_prob = 0
         total_words = 0
@@ -186,11 +186,11 @@ class HMM:
                         trans_prob = max(1e-10, self.getTransitionProbability(prev_state, state))
                         log_probs.append(forward[j, t-1] + math.log(trans_prob))
                         
-                    forward[i, t] = self.logsumexp(log_probs) + \
+                    forward[i, t] = logsumexp(log_probs) + \
                         math.log(max(1e-10, self.getEmissionProbility(state, words[t])))
 
             # Sum final column for sentence probability (already in log space)
-            sentence_log_prob = self.logsumexp(forward[:, T-1])
+            sentence_log_prob = logsumexp(forward[:, T-1])
             total_log_prob += sentence_log_prob / math.log(2)  # convert to log base 2
             total_words += len(sentence)
 
@@ -249,29 +249,28 @@ class BigramModel:
                     self.bigram_probs[w1]["<unk>"] = unseen_prob
     
     def calculatePerplexity(self, test_sents):
-
         total_log_prob = 0
         total_words = 0
 
         for sentence in test_sents:
-            # Add start and end tokens
             words = [token['form'] for token in sentence] + ["</s>"]
-            sentence_log_prob = 0
             
-            for i in range(1, len(words)):
-                prev_word = words[i-1]
-                curr_word = words[i] 
+            # Pre-calculate all probabilities for the sentence at once
+            log_probs = np.zeros(len(words)-1)
+            
+            for i in range(len(words)-1):
+                prev_word = words[i]
+                curr_word = words[i+1]
                 
-                # Get probability, defaulting to unknown word probability if needed
                 if prev_word in self.bigram_probs:
                     prob = self.bigram_probs[prev_word].get(curr_word, 
-                            self.bigram_probs[prev_word]["<unk>"])
+                          self.bigram_probs[prev_word]["<unk>"])
                 else:
-                    prob = 1.0 / len(self.unigrams)  # Uniform distribution for unknown prev_word
-                    
-                sentence_log_prob += math.log(max(prob, 1e-10), 2)
+                    prob = 1.0 / len(self.unigrams)
+                
+                log_probs[i] = math.log2(max(prob, 1e-10))
             
-            total_log_prob += sentence_log_prob
+            total_log_prob += np.sum(log_probs)
             total_words += len(sentence)
 
         perplexity = math.pow(2, -total_log_prob / total_words)
@@ -301,14 +300,16 @@ if __name__ == '__main__':
                 if tags[i] == predicted_tags[i]:
                     correct += 1
                 total += 1
-        print(correct / total)
+
+        hmm_accuracy = correct / total
+        print(f"hmm accuracy: {hmm_accuracy:.5f}")
 
         # Test perplexity
-        perplexity = hmm.calculatePerplexity(test_sents)
-        print(perplexity)
+        hmm_perplexity = hmm.calculatePerplexity(test_sents)
+        print(f"hmm perplexity: {hmm_perplexity:.5f}")
 
         # Bigram prob estimation
         bigram_model = BigramModel(train_sents)
 
-        perplexity_bigrams = bigram_model.calculatePerplexity(test_sents)
-        print(perplexity_bigrams)
+        bigram_perplexity = bigram_model.calculatePerplexity(test_sents)
+        print(f"bigram perplexity: {bigram_perplexity:.5f}")
