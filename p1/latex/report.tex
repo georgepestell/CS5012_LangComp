@@ -43,24 +43,28 @@
 
 \begin{table}[H]
     \centering
-    \begin{tabular}{r | l}
-        \textbf{Lang} & \textbf{Test Accuracy} \\
+    \begin{tabular}{c | l | l | l}
+        \textbf{Lang}   & \textbf{HMM Accuracy} & \textbf{HMM Perplexity}   & \textbf{Bigram Perplexity}\\
         \hline
-        \texttt{en} & 0.9825227963525835 \\
+        \texttt{en}     & 0.98252               & 95.00279                  & 13.99254                  \\
         \hline
-        \texttt{orv} & 0.8210169932938343 \\
+        \texttt{orv}    & 0.82102               & 8045.24735                & 146.68261                 \\
         \hline
-        \texttt{tr} & 0.9709121130272179
+        \texttt{tr}     & 0.97091               & 428.37705                 & 21.10778                  \\
     \end{tabular}
-    \caption{Accuracy of the HMM model on the test sets}
+    \caption{Accuracy of the HMM model, with perplexity values for the HMM and Bigram models using the English, Old East Slavic, and Turkish test corpuses. Given to 5 decimal places.}
     \label{tab:hmm-accuracy}
 \end{table}
 
 \pagebreak
 \section{Reflection}
 
+The HMM model had high accuracy for English and Turkish test sets. This is consistent with the low perplexity observed on these test sets. The model had a lower accuracy on the Old East Slavic test set, which is consistent with the higher perplexity observed. The dramatic increase in perplexity on the Old East Slavic test set is likely due to the 
 
-The HMM model had high accuracy on the English and Turkish test sets. A significant performance drop was observed on the Old Russian test set. This could be due to the small size of the training set for Old Russian. This may be due to the relatively small training set for Old Russian. The model may not have been able to learn the language model effectively due to the small size of the training set. The model may have overfitted the training data, leading to poor generalization on the test set.
+The HMM model had high accuracy on the English and Turkish test sets. A significant performance drop was observed on the Old East Slavic test set. This could be due to the small size of the training set for Old East Slavic. This may be due to the relatively small training set for Old East Slavic. The model may not have been able to learn the language model effectively due to the small size of the training set. The model may have overfitted the training data, leading to poor generalization on the test set.
+
+The HMM model additionally had low perplexity on the English and Turkish test sets - performing best with the English test set. The model had a higher perplexity on the Old East Slavic test set, which is consistent with the lower accuracy observed on this test set.
+
 % TODO: Discuss the successes and failures of the implementation
 
 \end{document}

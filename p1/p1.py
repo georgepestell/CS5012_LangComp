@@ -199,82 +199,91 @@ class HMM:
 
 class BigramModel:
     def __init__(self, train_sents):
-        self.bigrams = {}
-        self.unigrams = {}
-        self.total_tokens = 0
         self.bigram_probs = {}
+        self.vocab_size = 0
         self.calculateBigrams(train_sents)
     
     def calculateBigrams(self, train_sents):
-        self.bigrams = {}
-        self.unigrams = {}
+        bigrams = {}
+        unigrams = {}
         total_tokens = 0
 
-        # Count unigrams and bigrams
+        # Single pass to count unigrams and bigrams
         for sentence in train_sents:
-            words = ["<s>"]
+            prev_word = "<s>"
+            if prev_word not in unigrams:
+                unigrams[prev_word] = 0
+            unigrams[prev_word] += 1
+            total_tokens += 1
+
             for token in sentence:
-                words.append(token['form'])
-            words.append("</s>")
-            
-            # Count unigrams
-            for word in words:
-                if word not in self.unigrams:
-                    self.unigrams[word] = 0
-                self.unigrams[word] += 1
+                curr_word = token['form']
+                # Update unigrams
+                if curr_word not in unigrams:
+                    unigrams[curr_word] = 0
+                unigrams[curr_word] += 1
                 total_tokens += 1
+
+                # Update bigrams
+                if prev_word not in bigrams:
+                    bigrams[prev_word] = {}
+                if curr_word not in bigrams[prev_word]:
+                    bigrams[prev_word][curr_word] = 0
+                bigrams[prev_word][curr_word] += 1
+                
+                prev_word = curr_word
+
+            # Handle end of sentence
+            curr_word = "</s>"
+            if curr_word not in unigrams:
+                unigrams[curr_word] = 0
+            unigrams[curr_word] += 1
+            if prev_word not in bigrams:
+                bigrams[prev_word] = {}
+            if curr_word not in bigrams[prev_word]:
+                bigrams[prev_word][curr_word] = 0
+            bigrams[prev_word][curr_word] += 1
+
+        # Calculate probabilities once
+        self.vocab_size = len(unigrams)
+        for w1 in bigrams:
+            unique_following = len(bigrams[w1])
+            lambda_wb = unigrams[w1] / (unigrams[w1] + unique_following)
             
-            # Count bigrams
-            for i in range(len(words)-1):
-                if words[i] not in self.bigrams:
-                    self.bigrams[words[i]] = {}
-                if words[i+1] not in self.bigrams[words[i]]:
-                    self.bigrams[words[i]][words[i+1]] = 0
-                self.bigrams[words[i]][words[i+1]] += 1
-                # Convert counts to probabilities with Witten-Bell smoothing
-                self.bigram_probs = {}
-                for w1 in self.bigrams:
-                    unique_following = len(self.bigrams[w1])  # Number of unique words following w1
-                    lambda_wb = self.unigrams[w1] / (self.unigrams[w1] + unique_following)
-                    
-                    self.bigram_probs[w1] = {}
-                    for w2 in self.bigrams[w1]:
-                    # Smoothed probability combines ML estimate with unigram probability
-                        bigram_ml = self.bigrams[w1][w2] / self.unigrams[w1]
-                        unigram_prob = self.unigrams[w2] / total_tokens
-                        self.bigram_probs[w1][w2] = lambda_wb * bigram_ml + (1 - lambda_wb) * unigram_prob
-                    
-                    # Add probability for unseen words
-                    unseen_prob = (1 - lambda_wb) * (1 - sum(self.bigram_probs[w1].values()))
-                    self.bigram_probs[w1]["<unk>"] = unseen_prob
+            self.bigram_probs[w1] = {}
+            for w2 in bigrams[w1]:
+                bigram_ml = bigrams[w1][w2] / unigrams[w1]
+                unigram_prob = unigrams[w2] / total_tokens
+                self.bigram_probs[w1][w2] = lambda_wb * bigram_ml + (1 - lambda_wb) * unigram_prob
+            
+            # Store only one unseen probability per context
+            self.bigram_probs[w1]["<unk>"] = (1 - lambda_wb) * (1 - sum(self.bigram_probs[w1].values()))
     
     def calculatePerplexity(self, test_sents):
         total_log_prob = 0
         total_words = 0
+        default_prob = 1.0 / self.vocab_size
 
         for sentence in test_sents:
-            words = [token['form'] for token in sentence] + ["</s>"]
-            
-            # Pre-calculate all probabilities for the sentence at once
-            log_probs = np.zeros(len(words)-1)
-            
-            for i in range(len(words)-1):
-                prev_word = words[i]
-                curr_word = words[i+1]
-                
+            prev_word = "<s>"
+            for token in sentence:
+                curr_word = token['form']
                 if prev_word in self.bigram_probs:
-                    prob = self.bigram_probs[prev_word].get(curr_word, 
-                          self.bigram_probs[prev_word]["<unk>"])
+                    prob = self.bigram_probs[prev_word].get(curr_word, self.bigram_probs[prev_word]["<unk>"])
                 else:
-                    prob = 1.0 / len(self.unigrams)
-                
-                log_probs[i] = math.log2(max(prob, 1e-10))
-            
-            total_log_prob += np.sum(log_probs)
-            total_words += len(sentence)
+                    prob = default_prob
+                total_log_prob += math.log2(max(prob, 1e-10))
+                prev_word = curr_word
+                total_words += 1
 
-        perplexity = math.pow(2, -total_log_prob / total_words)
-        return perplexity
+            # Handle end of sentence
+            if prev_word in self.bigram_probs:
+                prob = self.bigram_probs[prev_word].get("</s>", self.bigram_probs[prev_word]["<unk>"])
+            else:
+                prob = default_prob
+            total_log_prob += math.log2(max(prob, 1e-10))
+
+        return math.pow(2, -total_log_prob / total_words)
 
 ### BEGIN STARTER CODE ###
 if __name__ == '__main__':
