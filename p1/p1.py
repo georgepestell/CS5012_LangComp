@@ -10,12 +10,13 @@ import numpy as np
 
 ### BEGIN STARTER CODE ###
 # Adding a list of probabilities represented as log probabilities.
-def logsumexp(self, vals):
+min_log_prob = -float_info.max
+def logsumexp(vals):
     if len(vals) == 0:
-        return self.min_log_prob
+        return min_log_prob
     m = max(vals)
-    if m == self.min_log_prob:
-        return self.min_log_prob
+    if m == min_log_prob:
+        return min_log_prob
     else:
         return m + math.log(sum([math.exp(val - m) for val in vals]))
 ### END STARTER CODE ###
@@ -33,7 +34,6 @@ class HMM:
         self.train(train_sents)
 
         self.states = list(self.state_counts.keys())
-        self.min_log_prob = -float_info.max
     
     def calculateLambda(self, state):
         uniqueTransitions = len(self.transitions[state])
