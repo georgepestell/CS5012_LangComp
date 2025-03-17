@@ -6,10 +6,24 @@
 
 \usepackage{float}
 
-\usepackage[margin=1in]{geometry}
+\usepackage[margin=0.5in]{geometry}
 
-\setlength{\parskip}{1em}
+\setlength{\parskip}{0.5em}
 \setlength{\parindent}{0em}
+
+\usepackage[compact]{titlesec}
+\titlespacing{\section}{0pt}{0.5em}{0em}
+\titlespacing{\subsection}{0pt}{0.5em}{0em}
+
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd{\gather}{\vspace}{\vspace{-0.5\baselineskip}}{}{}
+\patchcmd{\gather}{\vspace}{\vspace{-0.5\baselineskip}}{}{}
+\patchcmd{\equation}{\vspace}{\vspace{-0.5\baselineskip}}{}{}
+\patchcmd{\equation}{\vspace}{\vspace{-0.5\baselineskip}}{}{}
+\makeatother
+
+\usepackage{amsmath}
 
 \usepackage{titling}
 
@@ -33,17 +47,32 @@
 \pagebreak
 
 \section{Implementation}
+
 % TODO: Describe the implementation of HMM and bigrams
 
 \subsection{HMM Model}
 
+The HMM model training begins through counting the number of times each POS tag is followed by another POS tag, and the number of times each POS tag emits a particular word.
+This is done through iteration over each sentence from left to right, adding start and end markers to sentences.
+
+The training completes by calculating the probabilities for each transition and emission. The transition probabilities as the number of times a particular tag is followed by a particular tag, by dividing the transition count by the total transitions for a tag. Where combinations of transitions are not found, \texttt{<unk>} transitions are calculated using Witten-Bell smoothing for unseen values, making unknown probabilities less likely where there are more potential other tags that have been seen following the previous tag.
+
 \subsection{Viterbi Algorithm}
+
+To calculate the most likely sequence of POS tags for a given sentence, the Viterbi algorithm utilizes the probabilities calculated from a HMM model. 
+
+Initially, we take the size of the sentence as $T$ and the number of possible POS tags that have bee seen in the training data as $N$, not including the \texttt{<unk>} tag, or the start and end of sentence tags. We then construct the 2-dimensional viterbi table with dimensions $N \times T$. The first column of the table is then filled with the probability of the start tag transitioning to each tag in the training data.
+
+All probabilities are calculated and stored in log space, as the probabilities can become very small, and log space helps to avoid underflow issues. The probabilities are calculated using the formula:
+
 
 \subsection{Accuracy Calculation}
 
-\subsection{Perplexity Calculation}
+Accuracy calculation is simply calculated as the proportion of the tags outputted by the Viterbi algorithm that match the tags in the test set. Through looping over each sentence in the test set, we can total the number of tags that match the test set, and divide by the total number of tags.
 
 \subsection{Bigram Model}
+
+The bigram model is implemented by counting the number of times each word is followed by another word in the training data using a similar 2-dimensional array as the transitions in the HMM model, and 1-dimensional array as the emissions. This is used to calculate the bigrams and unigrams which are both used to calculate the bigram probabilities.
 
 \pagebreak
 \section{Results}
