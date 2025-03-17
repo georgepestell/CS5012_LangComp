@@ -31,6 +31,7 @@ class HMM:
     
         self.transition_probs = {}
         self.emission_probs = {}
+        
         self.train(train_sents)
 
         self.states = list(self.state_counts.keys())
@@ -82,16 +83,17 @@ class HMM:
         self.state_counts["<s>"] = len(train_sents)
         self.state_counts["</s>"] = len(train_sents)
 
+        total_states = sum(self.state_counts.values())
+
         for prev_state in self.transitions:
             prev_lambda = self.calculateLambda(prev_state)
-            total_transitions = sum(self.transitions[prev_state].values())
 
             if prev_state not in self.transition_probs:
                 self.transition_probs[prev_state] = {}
             
             for curr_state in self.transitions[prev_state]:
-                transition_prob = self.transitions[prev_state][curr_state] / total_transitions
-                self.transition_probs[prev_state][curr_state] = (prev_lambda * transition_prob + (1 - prev_lambda) * (self.state_counts[curr_state] / sum(self.state_counts.values())))
+                transition_prob = self.transitions[prev_state][curr_state] / self.state_counts[prev_state]
+                self.transition_probs[prev_state][curr_state] = (prev_lambda * transition_prob + (1 - prev_lambda) * (self.state_counts[curr_state] / total_states))
 
             # Unseen transitions
             unseen_value = (1 - prev_lambda) * (1 - sum(self.transition_probs[prev_state].values()))
