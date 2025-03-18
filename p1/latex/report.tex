@@ -61,10 +61,9 @@ The training completes by calculating the probabilities for each transition and 
 
 To calculate the most likely sequence of POS tags for a given sentence, the Viterbi algorithm utilizes the probabilities calculated from a HMM model. 
 
-Initially, we take the size of the sentence as $T$ and the number of possible POS tags that have bee seen in the training data as $N$, not including the \texttt{<unk>} tag, or the start and end of sentence tags. We then construct the 2-dimensional viterbi table with dimensions $N \times T$. The first column of the table is then filled with the probability of the start tag transitioning to each tag in the training data.
+The Viterbi algorithm initially constructs a 2-dimensional table to store the probabilities of each potential tag at each position in the sentence, given the previous tags. The initial column is filled with the probability of the start tag transitioning to each tag. The algorithm then iterates over each following word in the sentence and fills in the probabilities of each tag that follows the immediate previous tag, multiplied by the emission probability of the word given the tag. The maximum probability at each position is then selected, starting with the final word and working backwards to get the most likely sequence of tags.
 
-All probabilities are calculated and stored in log space, as the probabilities can become very small, and log space helps to avoid underflow issues. The probabilities are calculated using the formula:
-
+Log space is used to prevent probability underflow as probabilities are multiplied ogether the number of times equal to the length of the sentence, which can lead to very small probabilities, which may underflow to zero in normal space.
 
 \subsection{Accuracy Calculation}
 
@@ -102,6 +101,9 @@ The HMM model had high accuracy on the English and Turkish test sets. A signific
 
 The HMM model additionally had low perplexity on the English and Turkish test sets - performing best with the English test set. The model had a higher perplexity on the Old East Slavic test set, which is consistent with the lower accuracy observed on this test set.
 
-% TODO: Discuss the successes and failures of the implementation
+Overall, the HMM model by and large performed well. The complexity of the Old East Slavic language may have contributed to the lower accuracy and higher perplexity observed throughout these experiments, suggesting a larger training corpus for more complex languages may be necessary to achieve better results.
+
+
+The overall implementation is efficient, completing training and testing in a reasonable amount of time. The Bigram model is significantly slower than the HMM model, as it requires more calculations to determine the probabilities of each word given the previous word, and there are more words than token types in most languages. This also results in the HMM model having a lower memory footprint than the Bigram model.
 
 \end{document}
